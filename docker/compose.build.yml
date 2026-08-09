@@ -1,0 +1,11 @@
+services:
+  demo:
+    build:
+      context: .
+      args:
+        GIT_SHA: ${GIT_SHA:-local}
+
+    restart: unless-stopped
+
+    ports:
+      - "8010:8000"
