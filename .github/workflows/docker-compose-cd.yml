@@ -8,8 +8,8 @@ on:
       - "transform.py"
       - "tests/**"
       - "requirements-dev.txt"
-      - ".github/workflows/python-ci-cd.yml"
-
+      - ".github/workflows/**"
+      - "docker/**"
   push:
     branches:
       - main
@@ -17,7 +17,8 @@ on:
       - "transform.py"
       - "tests/**"
       - "requirements-dev.txt"
-      - ".github/workflows/python-ci-cd.yml"
+      - ".github/workflows/**"
+      - "docker/**"      
 
 permissions:
   contents: read
