@@ -1,0 +1,27 @@
+name: Test Home Server Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  test-home-server:
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+
+    steps:
+
+      - name: Show hostname
+        run: hostname
+
+      - name: Show current user
+        run: whoami
+
+      - name: Check Docker
+        run: docker ps
+
+      - name: Check Docker Compose
+        run: docker compose version
