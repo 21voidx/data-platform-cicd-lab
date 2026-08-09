@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - "labs/python/**"
+      - "data-platform-cicd-lab/**"
       - ".github/workflows/python-ci-cd.yml"
 
   push:
     branches:
       - main
     paths:
-      - "labs/python/**"
+      - "data-platform-cicd-lab/**"
       - ".github/workflows/python-ci-cd.yml"
 
 permissions:
