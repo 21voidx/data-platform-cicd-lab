@@ -36,7 +36,7 @@ jobs:
       - name: Validate Compose
         run: |
           docker compose \
-            -f docker/compose.build.yaml \
+            -f docker/compose.build.yml \
             config
 
       - name: Test Docker build
@@ -79,7 +79,7 @@ jobs:
         run: |
           GIT_SHA="$GITHUB_SHA" \
           docker compose \
-            -f compose.build.yaml \
+            -f compose.build.yml \
             up \
             -d \
             --build \
