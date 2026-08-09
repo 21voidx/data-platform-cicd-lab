@@ -51,3 +51,45 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest -v
+
+
+
+  deploy-python:
+    name: Deploy Python to Home Server
+
+    needs:
+      - python-ci
+
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+
+    environment:
+      name: production
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Deploy Python file
+        run: |
+          cp transform.py /home/void/data-platform-cicd-lab/transform.py
+          printf '%s\n' "$GITHUB_SHA" > /home/void/data-platform-cicd-lab/VERSION
+
+      - name: Run deployed application
+        run: |
+          python3 /home/void/data-platform-cicd-lab/transform.py \
+            | tee /home/void/data-platform-cicd-lab/last-run.txt
+
+      - name: Verify deployment
+        run: |
+          echo "Version:"
+          cat /home/void/data-platform-cicd-lab/VERSION
+
+          echo "Output:"
+          cat /home/void/data-platform-cicd-lab/last-run.txt
