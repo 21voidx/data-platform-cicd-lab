@@ -1,0 +1,94 @@
+name: Docker Compose CD
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "transform.py"
+      - "tests/**"
+      - "requirements-dev.txt"
+      - ".github/workflows/python-ci-cd.yml"
+
+  push:
+    branches:
+      - main
+    paths:
+      - "transform.py"
+      - "tests/**"
+      - "requirements-dev.txt"
+      - ".github/workflows/python-ci-cd.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  docker-ci:
+    name: Docker Build Test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate Compose
+        run: |
+          docker compose \
+            -f docker/compose.build.yaml \
+            config
+
+      - name: Test Docker build
+        run: |
+          docker build \
+            --build-arg GIT_SHA="$GITHUB_SHA" \
+            -t demo-ci:"$GITHUB_SHA" \
+            docker
+
+
+  deploy:
+    name: Deploy Docker Compose
+
+    needs:
+      - docker-ci
+
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+
+    environment:
+      name: production
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Copy deployment files
+        run: |
+          rm -rf /home/void/data-platform-cicd-lab/*
+          cp -a docker/. /home/void/data-platform-cicd-lab/
+
+      - name: Build and deploy
+        working-directory: /home/void/data-platform-cicd-lab
+        run: |
+          GIT_SHA="$GITHUB_SHA" \
+          docker compose \
+            -f compose.build.yaml \
+            up \
+            -d \
+            --build \
+            --remove-orphans
+
+      - name: Smoke test
+        run: |
+          curl \
+            --fail \
+            --retry 10 \
+            --retry-delay 2 \
+            --retry-connrefused \
+            http://127.0.0.1:8010
