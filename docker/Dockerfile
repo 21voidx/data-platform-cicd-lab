@@ -10,11 +10,4 @@ RUN printf '<h1>GitHub Actions Docker Lab</h1><p>Version: %s</p>\n' \
 
 EXPOSE 8000
 
-CMD [
-  "python",
-  "-m",
-  "http.server",
-  "8000",
-  "--bind",
-  "0.0.0.0"
-]
+CMD ["python","-m","http.server","8000","--bind","0.0.0.0"]
