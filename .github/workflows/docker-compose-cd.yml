@@ -8,10 +8,8 @@ on:
       - "transform.py"
       - "tests/**"
       - "requirements-dev.txt"
-      - ".github/workflows/python-ci-cd.yml"
+      - ".github/workflows/**"
       - "docker/**"
-      - "Dockerfile"
-      - "compose.build.yml"
   push:
     branches:
       - main
@@ -19,10 +17,8 @@ on:
       - "transform.py"
       - "tests/**"
       - "requirements-dev.txt"
-      - ".github/workflows/python-ci-cd.yml"
-      - "docker/**"
-      - "Dockerfile"
-      - "compose.build.yml"      
+      - ".github/workflows/**"
+      - "docker/**"      
 
 permissions:
   contents: read
@@ -40,7 +36,7 @@ jobs:
       - name: Validate Compose
         run: |
           docker compose \
-            -f docker/compose.build.yaml \
+            -f docker/compose.build.yml \
             config
 
       - name: Test Docker build
@@ -83,7 +79,7 @@ jobs:
         run: |
           GIT_SHA="$GITHUB_SHA" \
           docker compose \
-            -f compose.build.yaml \
+            -f compose.build.yml \
             up \
             -d \
             --build \
