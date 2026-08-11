@@ -45,10 +45,9 @@ jobs:
             --rm \
             airflow-ci:"$GITHUB_SHA" \
             airflow dags list-import-errors \
+              --local \
               --output=json \
-            > import-errors.json
-
-          cat import-errors.json
+            | tee import-errors.json
 
       - name: Fail if DAG import errors exist
         run: |
