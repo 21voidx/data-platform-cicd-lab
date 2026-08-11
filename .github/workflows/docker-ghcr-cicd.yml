@@ -151,6 +151,6 @@ jobs:
           curl \
             --fail \
             --retry 10 \
-            --retry-delay 2 \
+            --retry-delay 3 \
             --retry-connrefused \
-            http://127.0.0.1:8000
+            http://127.0.0.1:8010
