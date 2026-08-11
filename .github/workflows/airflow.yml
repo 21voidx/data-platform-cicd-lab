@@ -1,0 +1,159 @@
+name: Airflow CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "airflow/**"
+      - ".github/workflows/airflow.yml"
+
+  push:
+    branches: [main]
+    paths:
+      - "airflow/**"
+      - ".github/workflows/airflow.yml"
+
+
+jobs:
+
+  # =========================================
+  # 1. CI
+  # =========================================
+  ci:
+    name: Test Airflow
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build image
+        run: |
+          docker build \
+            -t airflow-ci:"$GITHUB_SHA" \
+            airflow
+
+      - name: Test DAGs
+        run: |
+          docker run --rm -i airflow-ci:"$GITHUB_SHA" python - <<'PY'
+          from airflow.dag_processing.dagbag import DagBag
+
+          dagbag = DagBag(
+              dag_folder="/opt/airflow/dags",
+              include_examples=False,
+          )
+
+          if dagbag.import_errors:
+              print("DAG IMPORT ERROR:")
+
+              for file, error in dagbag.import_errors.items():
+                  print(f"\n{file}\n{error}")
+
+              raise SystemExit(1)
+
+          print(f"OK: {len(dagbag.dags)} DAG(s) loaded")
+          PY
+
+
+  # =========================================
+  # 2. BUILD & PUSH
+  # =========================================
+  publish:
+    name: Publish Image
+
+    needs: ci
+
+    if: github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" |
+          docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Build and push
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}-airflow:${GITHUB_SHA}"
+
+          docker build \
+            -t "$IMAGE" \
+            airflow
+
+          docker push "$IMAGE"
+
+
+  # =========================================
+  # 3. DEPLOY
+  # =========================================
+  deploy:
+    name: Deploy Production
+
+    needs: publish
+
+    environment: production
+
+    concurrency:
+      group: airflow-production
+      cancel-in-progress: false
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" |
+          docker login ghcr.io \
+            -u "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Deploy
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}-airflow:${GITHUB_SHA}"
+
+          cp airflow/docker-compose.yaml \
+            /opt/airflow/docker-compose.yaml
+
+          cd /opt/airflow
+
+          sed -i \
+            "s|^AIRFLOW_IMAGE_NAME=.*|AIRFLOW_IMAGE_NAME=$IMAGE|" \
+            .env
+
+          docker compose pull
+
+          docker compose up \
+            -d \
+            --remove-orphans \
+            --wait \
+            --wait-timeout 120
+
+          docker compose ps
