@@ -146,10 +146,10 @@ jobs:
           IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}-airflow:${GITHUB_SHA}"
 
           cp airflow/docker-compose.yaml \
-            /opt/airflow/docker-compose.yaml
+            /home/void/data-platform-cicd-lab/airflow/docker-compose.yaml
 
-          cd /opt/airflow
-
+          cd /home/void/data-platform-cicd-lab/airflow
+          
           sed -i \
             "s|^AIRFLOW_IMAGE_NAME=.*|AIRFLOW_IMAGE_NAME=$IMAGE|" \
             .env
