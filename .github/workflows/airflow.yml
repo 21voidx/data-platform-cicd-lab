@@ -144,12 +144,13 @@ jobs:
       - name: Deploy
         run: |
           IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}-airflow:${GITHUB_SHA}"
+          DEPLOY_DIR="/opt/airflow"
 
           cp airflow/docker-compose.yaml \
-            /home/void/data-platform-cicd-lab/airflow/docker-compose.yaml
+            "$DEPLOY_DIR/docker-compose.yaml"
 
-          cd /home/void/data-platform-cicd-lab/airflow
-          
+          cd "$DEPLOY_DIR"
+
           sed -i \
             "s|^AIRFLOW_IMAGE_NAME=.*|AIRFLOW_IMAGE_NAME=$IMAGE|" \
             .env
