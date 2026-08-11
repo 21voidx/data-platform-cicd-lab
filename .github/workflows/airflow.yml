@@ -44,8 +44,7 @@ jobs:
           from airflow.dag_processing.dagbag import DagBag
 
           dagbag = DagBag(
-              dag_folder="/opt/airflow/dags",
-              include_examples=False,
+              dag_folder="/opt/airflow/dags"
           )
 
           if dagbag.import_errors:
@@ -56,7 +55,14 @@ jobs:
 
               raise SystemExit(1)
 
+          if not dagbag.dags:
+              print("ERROR: No DAGs found")
+              raise SystemExit(1)
+
           print(f"OK: {len(dagbag.dags)} DAG(s) loaded")
+
+          for dag_id in dagbag.dags:
+              print(f" - {dag_id}")
           PY
 
 
