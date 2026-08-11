@@ -38,7 +38,7 @@ jobs:
           APP_IMAGE: ghcr.io/example/example:test
         run: |
           docker compose \
-            -f docker/compose.prod.yaml \
+            -f docker/compose.prod.yml \
             config
 
       - name: Test Docker build
@@ -128,8 +128,8 @@ jobs:
       - name: Copy Compose file
         run: |
           cp \
-            docker/compose.prod.yaml \
-            /home/void/data-platform-cicd-lab/compose.prod.yaml
+            docker/compose.prod.yml \
+            /home/void/data-platform-cicd-lab/compose.prod.yml
 
       - name: Pull and deploy exact image
         working-directory: /home/void/data-platform-cicd-lab
@@ -137,11 +137,11 @@ jobs:
           APP_IMAGE: ${{ needs.publish.outputs.image }}
         run: |
           docker compose \
-            -f compose.prod.yaml \
+            -f compose.prod.yml \
             pull
 
           docker compose \
-            -f compose.prod.yaml \
+            -f compose.prod.yml \
             up \
             -d \
             --remove-orphans
